@@ -1,0 +1,153 @@
+class Conta:
+    agencias = []
+    numeros = []
+
+    def __init__(self, agencia, numero, cliente, saldo=0.0, limite=0.0, limite_saques=0):
+        self.agencia = agencia
+        self.numero = numero
+        self.cliente = cliente
+        self.saldo = saldo
+        self.limite = limite
+        self.limite_saques = limite_saques
+
+    def depositar(self, valor):
+        if valor > 0:
+            self.saldo += valor
+            print(f"Depósito de R${valor:.2f} realizado com sucesso.")
+        else:
+            print("Valor de depósito inválido.")
+
+    def sacar(self, valor):
+        if valor > 0 and valor <= (self.saldo + self.limite):
+            self.saldo -= valor
+            print(f"Saque de R${valor:.2f} realizado com sucesso.")
+        else:
+            print("Saldo insuficiente ou valor de saque inválido.")
+
+    def transferencia(self, destino, valor):
+        if valor > 0 and valor <= (self.saldo + self.limite):
+            self.saldo -= valor
+            destino.saldo += valor
+            print(f"Transferência de R${valor:.2f} realizada com sucesso.")
+        else:
+            print("Saldo insuficiente ou valor de transferência inválido.")
+
+
+class Cliente:
+    contas = []
+
+    def __init__(self, nome, endereco):
+        self.nome = nome
+        self.endereco = endereco
+        self.cliente_contas = []
+
+    def __str__(self):
+        return f"Cliente: {self.nome}"
+
+
+class Transacoes:
+    @staticmethod
+    def realizar_transacoes(conta):
+        while True:
+            print(menu_transacoes)
+
+            opcao = input("Digite a opção desejada: ")
+
+            if opcao == '1':
+                valor = float(input("Digite o valor do depósito: "))
+                conta.depositar(valor)
+            elif opcao == '2':
+                valor = float(input("Digite o valor do saque: "))
+                conta.sacar(valor)
+            elif opcao == '3':
+                destino_numero = int(input("Digite o número da conta de destino: "))
+                valor = float(input("Digite o valor da transferência: "))
+                destino_conta = Transacoes.encontrar_conta(destino_numero)
+                if destino_conta:
+                    conta.transferencia(destino_conta, valor)
+                else:
+                    print(f"Conta de número {destino_numero} não encontrada.")
+            elif opcao.lower() == 's':
+                break
+            else:
+                print("Opção inválida.")
+
+    @staticmethod
+    def encontrar_conta(numero):
+        for cliente in Cliente.contas:
+            for conta in cliente.cliente_contas:
+                if conta.numero == numero:
+                    return conta
+        return None
+
+
+menu = '''
+#########################################
+      Sistema Bancário Unificado
+
+      [1] Já Sou Cliente
+      [2] Novo Cliente
+      [S] Sair
+
+#########################################
+'''
+
+menu_transacoes = '''
+#########################################
+      Sistema Bancário Unificado
+
+      [1] Depósito
+      [2] Saque
+      [3] Transferências
+
+      [S] Sair
+
+#########################################
+'''
+
+while True:
+    print(menu)
+
+    opcao = input("Digite a opção desejada: ")
+
+    if opcao == '1':
+        nome_cliente = input("Digite o nome do cliente: ")
+        cliente_existente = next((c for c in Cliente.contas if c.nome == nome_cliente), None)
+
+        if cliente_existente:
+            print("Cliente encontrado.")
+            conta_numero = int(input("Digite o número da conta: "))
+            conta = next((c for c in cliente_existente.cliente_contas if c.numero == conta_numero), None)
+
+            if conta:
+                print("Conta encontrada.")
+                Transacoes.realizar_transacoes(conta)
+            else:
+                print("Conta não encontrada.")
+        else:
+            print("Cliente não encontrado.")
+    elif opcao == '2':
+        nome = input("Digite o nome do cliente: ")
+        endereco = input("Digite o endereço do cliente: ")
+        cliente_existente = next((c for c in Cliente.contas if c.nome == nome), None)
+
+        if cliente_existente:
+            print("Cliente já existente.")
+        else:
+            cliente = Cliente(nome, endereco)
+            Cliente.contas.append(cliente)
+
+            agencia = int(input("Digite o número da agência: "))
+            conta_numero = int(input("Digite o número da conta: "))
+            saldo_inicial = float(input("Digite o saldo inicial da conta: "))
+            limite = float(input("Digite o limite da conta: "))
+            limite_saques = int(input("Digite o limite de saques da conta: "))
+
+            conta = Conta(agencia, conta_numero, cliente, saldo_inicial, limite, limite_saques)
+            cliente.cliente_contas.append(conta)
+
+            print("Cliente e conta criados com sucesso!")
+    elif opcao.lower() == 's':
+        break
+    else:
+        print("Opção inválida.")
